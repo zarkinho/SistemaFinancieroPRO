@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+
+<!-- ========================================================= -->
+<!-- ENCABEZADO -->
+<!-- ========================================================= -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="fw-bold">
+
+            Dashboard
+
+        </h2>
+
+        <p class="text-muted">
+
+            Bienvenido al Sistema Financiero PRO
+
+        </p>
+
+    </div>
+
+    <div class="text-end">
+
+        <h5
+            id="fecha"
+            class="fw-bold text-primary mb-0">
+
+        </h5>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- TARJETAS PRINCIPALES -->
+<!-- ========================================================= -->
+
+<div class="row">
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-secondary">
+
+                    Saldo Disponible
+
+                </h6>
+
+                <h3 class="text-primary">
+
+                    $ {{ "{:,.0f}".format(saldo) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-secondary">
+
+                    Ingresos
+
+                </h6>
+
+                <h3 class="text-success">
+
+                    $ {{ "{:,.0f}".format(ingresos) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-secondary">
+
+                    Gastos
+
+                </h6>
+
+                <h3 class="text-danger">
+
+                    $ {{ "{:,.0f}".format(gastos) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-secondary">
+
+                    Inversiones
+
+                </h6>
+
+                <h3 class="text-warning">
+
+                    $ {{ "{:,.0f}".format(inversiones) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- SALDOS POR CUENTA -->
+<!-- ========================================================= -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+
+            💰 Saldo por Cuentas
+
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            {% for cuenta in saldos_cuentas %}
+
+            <div class="col-lg-4 col-md-6 mb-3">
+
+                <div class="card h-100 border">
+
+                    <div class="card-body text-center">
+
+                        <h6 class="text-muted">
+
+                            {{ cuenta.nombre }}
+
+                        </h6>
+
+                        <h3 class="fw-bold text-primary">
+
+                            $ {{ "{:,.0f}".format(cuenta.saldo) }}
+
+                        </h3>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- BOTÓN NUEVO MOVIMIENTO -->
+<!-- ========================================================= -->
+
+<div class="d-flex justify-content-end mb-4">
+
+    <a
+
+        href="{{ url_for('main.nuevo_movimiento') }}"
+
+        class="btn btn-primary btn-lg">
+
+        <i class="bi bi-plus-circle"></i>
+
+        Nuevo Movimiento
+
+    </a>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- ÚLTIMOS MOVIMIENTOS -->
+<!-- ========================================================= -->
+
+<div class="card shadow border-0">
+
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+
+            📋 Últimos Movimientos
+
+        </h5>
+
+        <a
+
+            href="{{ url_for('main.historial') }}"
+
+            class="btn btn-light btn-sm">
+
+            Ver Historial
+
+        </a>
+
+    </div>
+
+    <div class="card-body">
+
+        {% if movimientos %}
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>Fecha</th>
+
+                        <th>Tipo</th>
+
+                        <th>Cuenta</th>
+
+                        <th>Categoría</th>
+
+                        <th>Descripción</th>
+
+                        <th class="text-end">
+
+                            Valor
+
+                        </th>
+
+                        <th class="text-center">
+
+                            Acciones
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for movimiento in movimientos %}
+
+                    <tr>
+
+                        <td>
+
+                            {{ movimiento.fecha.strftime("%d/%m/%Y") }}
+
+                        </td>
+
+                        <td>
+
+                            {% if movimiento.tipo == "INGRESO" %}
+
+                                <span class="badge bg-success">
+
+                                    Ingreso
+
+                                </span>
+
+                            {% elif movimiento.tipo == "GASTO" %}
+
+                                <span class="badge bg-danger">
+
+                                    Gasto
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Inversión
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {{ movimiento.cuenta.nombre }}
+
+                        </td>
+
+                        <td>
+
+                            {{ movimiento.categoria.nombre }}
+
+                        </td>
+
+                        <td>
+
+                            {{ movimiento.descripcion }}
+
+                        </td>
+
+                        <td class="text-end">
+
+                            <strong>
+
+                                $ {{ "{:,.0f}".format(movimiento.valor) }}
+
+                            </strong>
+
+                        </td>
+
+                        <td class="text-center">
+
+                            <a
+
+                                href="{{ url_for('main.editar_movimiento', id=movimiento.id) }}"
+
+                                class="btn btn-warning btn-sm"
+
+                                title="Editar">
+
+                                ✏️
+
+                            </a>
+
+                            <a
+
+                                href="{{ url_for('main.eliminar_movimiento', id=movimiento.id) }}"
+
+                                class="btn btn-danger btn-sm"
+
+                                title="Eliminar"
+
+                                onclick="return confirm('¿Está seguro de eliminar este movimiento?');">
+
+                                🗑️
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="alert alert-info">
+
+            No existen movimientos registrados.
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================= -->
+
+<script>
+
+function actualizarReloj(){
+
+    const ahora = new Date();
+
+    const fecha = ahora.toLocaleDateString(
+
+        "es-CO"
+
+    );
+
+    const hora = ahora.toLocaleTimeString(
+
+        "es-CO",
+
+        {
+
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+            hour12: false
+
+        }
+
+    );
+
+    document.getElementById("fecha").innerHTML =
+
+        "📅 " + fecha +
+
+        " &nbsp;&nbsp;|&nbsp;&nbsp; 🕒 " +
+
+        hora;
+
+}
+
+actualizarReloj();
+
+setInterval(
+
+    actualizarReloj,
+
+    1000
+
+);
+
+</script>
+
+{% endblock %}

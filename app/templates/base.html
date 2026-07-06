@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema Financiero PRO</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+</head>
+
+<body>
+
+<!-- ========================================================= -->
+<!-- NAVBAR -->
+<!-- ========================================================= -->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold"
+           href="{{ url_for('main.dashboard') }}">
+
+            💰 Sistema Financiero PRO
+
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#menu">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="menu">
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       href="{{ url_for('main.dashboard') }}">
+
+                        <i class="bi bi-speedometer2"></i>
+
+                        Dashboard
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       href="{{ url_for('main.historial') }}">
+
+                        <i class="bi bi-clock-history"></i>
+
+                        Historial
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       href="/reportes">
+
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+
+                        Reportes Financieros
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       href="{{ url_for('main.estadisticas') }}">
+
+                        <i class="bi bi-bar-chart"></i>
+
+                        Estadísticas
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link"
+                       href="{{ url_for('main.nuevo_movimiento') }}">
+
+                        <i class="bi bi-plus-circle"></i>
+
+                        Nuevo Movimiento
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<!-- ========================================================= -->
+<!-- MENSAJES -->
+<!-- ========================================================= -->
+
+<div class="container mt-3">
+
+{% with mensajes = get_flashed_messages(with_categories=true) %}
+
+{% if mensajes %}
+
+{% for categoria, mensaje in mensajes %}
+
+<div class="alert alert-{{ categoria }} alert-dismissible fade show">
+
+    {{ mensaje }}
+
+    <button
+        class="btn-close"
+        data-bs-dismiss="alert">
+
+    </button>
+
+</div>
+
+{% endfor %}
+
+{% endif %}
+
+{% endwith %}
+
+</div>
+
+<!-- ========================================================= -->
+<!-- CONTENIDO -->
+<!-- ========================================================= -->
+
+<div class="container mt-4 mb-5">
+
+{% block contenido %}
+
+{% endblock %}
+
+</div>
+
+<!-- ========================================================= -->
+<!-- FOOTER -->
+<!-- ========================================================= -->
+
+<footer class="bg-light border-top mt-5">
+
+    <div class="container text-center py-3">
+
+        <small>
+
+            Sistema Financiero PRO © 2026
+
+        </small>
+
+    </div>
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+
+</html>

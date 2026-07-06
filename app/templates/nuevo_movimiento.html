@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+
+<div class="row mb-4">
+
+    <div class="col">
+
+        <h2>Registrar Movimiento</h2>
+
+        <p class="text-muted">
+            Registra un ingreso, gasto o inversión.
+        </p>
+
+    </div>
+
+</div>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <form method="POST">
+
+            {{ form.hidden_tag() }}
+
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+
+                    {{ form.tipo.label }}
+
+                    {{ form.tipo(class="form-select", id="tipo") }}
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                    {{ form.cuenta.label }}
+
+                    {{ form.cuenta(class="form-select", id="cuenta") }}
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                    {{ form.categoria.label }}
+
+                    {{ form.categoria(class="form-select", id="categoria") }}
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+
+                {{ form.descripcion.label }}
+
+                {{ form.descripcion(class="form-control") }}
+
+            </div>
+
+            <div class="mb-3">
+
+                {{ form.valor.label }}
+
+                {{ form.valor(class="form-control") }}
+
+            </div>
+
+            <div class="mb-3">
+
+                {{ form.observaciones.label }}
+
+                {{ form.observaciones(class="form-control", rows="4") }}
+
+            </div>
+
+            <div class="text-end">
+
+                {{ form.guardar(class="btn btn-success btn-lg") }}
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

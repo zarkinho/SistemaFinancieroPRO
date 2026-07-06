@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="fw-bold">
+
+            📊 Estadísticas
+
+        </h2>
+
+        <p class="text-muted">
+
+            Resumen financiero del sistema.
+
+        </p>
+
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6>Ingresos</h6>
+
+                <h2 class="text-success">
+
+                    $ {{ "{:,.0f}".format(ingresos) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6>Gastos</h6>
+
+                <h2 class="text-danger">
+
+                    $ {{ "{:,.0f}".format(gastos) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6>Inversiones</h6>
+
+                <h2 class="text-warning">
+
+                    $ {{ "{:,.0f}".format(inversiones) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6>Saldo</h6>
+
+                <h2 class="text-primary">
+
+                    $ {{ "{:,.0f}".format(saldo) }}
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card shadow mt-4">
+
+    <div class="card-header bg-success text-white">
+
+        <strong>
+
+            Resumen General
+
+        </strong>
+
+    </div>
+
+    <div class="card-body">
+
+        <canvas id="graficoGeneral"></canvas>
+
+    </div>
+
+</div>
+
+{% endblock %}
