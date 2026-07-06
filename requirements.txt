@@ -4,3 +4,5 @@ Flask-Migrate
 reportlab
 gunicorn
 openpyxl
+Flask-WTF
+email-validator
