@@ -1,55 +1,30 @@
 # ============================================================
 # PROYECTO : Sistema Financiero PRO
-# VERSIÓN  : 1.0
 # ARCHIVO  : config.py
-# MÓDULO   : Configuración General
-# AUTOR    : Juan Cordero
-# ASISTENTE: ChatGPT
-#
-# DESCRIPCIÓN:
-# Este archivo contiene toda la configuración
-# principal del sistema.
-# ============================================================
-
-# ============================================================
-# IMPORTACIONES
 # ============================================================
 
 import os
 
-# ============================================================
-# RUTA DEL PROYECTO
-# ============================================================
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# ============================================================
-# CONFIGURACIÓN
-# ============================================================
+INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
+
+os.makedirs(INSTANCE_DIR, exist_ok=True)
+
 
 class Config:
 
-    # --------------------------------------------------------
-    # Clave secreta
-    # --------------------------------------------------------
+    SECRET_KEY = os.environ.get(
+        "SECRET_KEY",
+        "SistemaFinancieroPRO2026"
+    )
 
-    SECRET_KEY = "SistemaFinancieroPRO2026"
-
-    # --------------------------------------------------------
-    # Base de datos SQLite
-    # --------------------------------------------------------
-
-    SQLALCHEMY_DATABASE_URI = (
-        "sqlite:///" +
-        os.path.join(
-            BASE_DIR,
-            "instance",
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL",
+        "sqlite:///" + os.path.join(
+            INSTANCE_DIR,
             "finanzas.db"
         )
     )
-
-    # --------------------------------------------------------
-    # Desactivar advertencias
-    # --------------------------------------------------------
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
