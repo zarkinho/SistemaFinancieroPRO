@@ -1,0 +1,9 @@
+{
+  "appId": "com.sarco.sistemafinancieropro",
+  "appName": "Sistema Financiero PRO",
+  "webDir": "www",
+  "server": {
+    "url": "https://sistemafinancieropro.onrender.com",
+    "cleartext": false
+  }
+}

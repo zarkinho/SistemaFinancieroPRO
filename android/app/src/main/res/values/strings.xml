@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sistema Financiero PRO</string>
+    <string name="title_activity_main">Sistema Financiero PRO</string>
+    <string name="package_name">com.sarco.sistemafinancieropro</string>
+    <string name="custom_url_scheme">com.sarco.sistemafinancieropro</string>
+</resources>

@@ -1,8 +1,9 @@
 Flask
 Flask-SQLAlchemy
 Flask-Migrate
-reportlab
-gunicorn
-openpyxl
 Flask-WTF
 email-validator
+gunicorn
+openpyxl
+reportlab
+psycopg2-binary
