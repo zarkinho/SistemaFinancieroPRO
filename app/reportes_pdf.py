@@ -1,13 +1,12 @@
 # ============================================================
 # PROYECTO : Sistema Financiero PRO
 # ARCHIVO  : reportes_pdf.py
-# VERSIÓN  : 1.0
+# VERSIÓN  : 2.0 MULTIUSUARIO
 # ============================================================
 
 from io import BytesIO
 
 from reportlab.lib import colors
-
 from reportlab.lib.pagesizes import letter
 
 from reportlab.platypus import (
@@ -21,7 +20,11 @@ from flask import send_file
 from app.models import Movimiento
 
 
-def generar_pdf():
+# ============================================================
+# GENERAR PDF
+# ============================================================
+
+def generar_pdf(usuario_id):
 
     buffer = BytesIO()
 
@@ -47,11 +50,25 @@ def generar_pdf():
 
     ]]
 
-    movimientos = Movimiento.query.order_by(
+    movimientos = (
 
-        Movimiento.fecha.desc()
+        Movimiento.query
 
-    ).all()
+        .filter_by(
+
+            usuario_id=usuario_id
+
+        )
+
+        .order_by(
+
+            Movimiento.fecha.desc()
+
+        )
+
+        .all()
+
+    )
 
     for movimiento in movimientos:
 
@@ -87,11 +104,17 @@ def generar_pdf():
 
             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
 
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 10)
+
         ])
 
     )
 
-    documento.build([tabla])
+    documento.build(
+
+        [tabla]
+
+    )
 
     buffer.seek(0)
 

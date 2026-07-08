@@ -1,6 +1,6 @@
 # ============================================================
 # PROYECTO : Sistema Financiero PRO
-# VERSIÓN  : 1.0 Lite
+# VERSIÓN  : 2.0
 # ARCHIVO  : forms.py
 # MÓDULO   : Formularios
 # AUTOR    : Juan Cordero
@@ -14,25 +14,161 @@
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    SelectField,
     StringField,
+    PasswordField,
+    SelectField,
     DecimalField,
     TextAreaField,
-    SubmitField
+    SubmitField,
+    BooleanField
 )
 
-from wtforms.validators import DataRequired
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    ValidationError
+)
+
+from app.models import Usuario
+
 
 # ============================================================
-# FORMULARIO
+# LOGIN
+# ============================================================
+
+class LoginForm(FlaskForm):
+
+    correo = StringField(
+
+        "Correo",
+
+        validators=[
+            DataRequired(),
+            Email()
+        ]
+
+    )
+
+    password = PasswordField(
+
+        "Contraseña",
+
+        validators=[
+            DataRequired()
+        ]
+
+    )
+
+    recordar = BooleanField(
+
+        "Recordarme"
+
+    )
+
+    ingresar = SubmitField(
+
+        "Iniciar Sesión"
+
+    )
+
+
+# ============================================================
+# REGISTRO
+# ============================================================
+
+class RegistroForm(FlaskForm):
+
+    nombre = StringField(
+
+        "Nombre Completo",
+
+        validators=[
+            DataRequired(),
+            Length(max=120)
+        ]
+
+    )
+
+    correo = StringField(
+
+        "Correo Electrónico",
+
+        validators=[
+            DataRequired(),
+            Email()
+        ]
+
+    )
+
+    telefono = StringField(
+
+        "Teléfono",
+
+        validators=[
+            Length(max=30)
+        ]
+
+    )
+
+    password = PasswordField(
+
+        "Contraseña",
+
+        validators=[
+            DataRequired(),
+            Length(min=6)
+        ]
+
+    )
+
+    confirmar = PasswordField(
+
+        "Confirmar Contraseña",
+
+        validators=[
+            DataRequired(),
+            EqualTo(
+                "password",
+                message="Las contraseñas no coinciden."
+            )
+        ]
+
+    )
+
+    registrar = SubmitField(
+
+        "Crear Cuenta"
+
+    )
+
+    # --------------------------------------------------------
+    # VALIDAR CORREO
+    # --------------------------------------------------------
+
+    def validate_correo(self, correo):
+
+        usuario = Usuario.query.filter_by(
+
+            correo=correo.data
+
+        ).first()
+
+        if usuario:
+
+            raise ValidationError(
+
+                "Ese correo ya está registrado."
+ 
+          )
+
+
+# ============================================================
 # REGISTRAR MOVIMIENTO
 # ============================================================
 
 class MovimientoForm(FlaskForm):
-
-    # --------------------------------------------------------
-    # TIPO DE MOVIMIENTO
-    # --------------------------------------------------------
 
     tipo = SelectField(
 
@@ -41,19 +177,14 @@ class MovimientoForm(FlaskForm):
         choices=[
 
             ("INGRESO", "Ingreso"),
-
             ("GASTO", "Gasto"),
-
             ("INVERSION", "Inversión")
 
         ],
 
         validators=[DataRequired()]
-    )
 
-    # --------------------------------------------------------
-    # CUENTA
-    # --------------------------------------------------------
+    )
 
     cuenta = SelectField(
 
@@ -64,11 +195,8 @@ class MovimientoForm(FlaskForm):
         choices=[],
 
         validators=[DataRequired()]
-    )
 
-    # --------------------------------------------------------
-    # CATEGORÍA
-    # --------------------------------------------------------
+    )
 
     categoria = SelectField(
 
@@ -79,22 +207,16 @@ class MovimientoForm(FlaskForm):
         choices=[],
 
         validators=[DataRequired()]
-    )
 
-    # --------------------------------------------------------
-    # DESCRIPCIÓN
-    # --------------------------------------------------------
+    )
 
     descripcion = StringField(
 
         "Descripción",
 
         validators=[DataRequired()]
-    )
 
-    # --------------------------------------------------------
-    # VALOR
-    # --------------------------------------------------------
+    )
 
     valor = DecimalField(
 
@@ -103,22 +225,17 @@ class MovimientoForm(FlaskForm):
         places=2,
 
         validators=[DataRequired()]
-    )
 
-    # --------------------------------------------------------
-    # OBSERVACIONES
-    # --------------------------------------------------------
+    )
 
     observaciones = TextAreaField(
 
         "Observaciones"
-    )
 
-    # --------------------------------------------------------
-    # BOTÓN
-    # --------------------------------------------------------
+    )
 
     guardar = SubmitField(
 
         "Guardar Movimiento"
+
     )

@@ -19,6 +19,11 @@ from flask import (
     request
 )
 
+from flask_login import (
+    login_required,
+    current_user
+)
+
 from sqlalchemy import func
 
 from openpyxl import Workbook
@@ -64,9 +69,12 @@ def calcular_totales():
 
     ).filter(
 
+        Movimiento.usuario_id == current_user.id,
+
         Movimiento.tipo == "INGRESO"
 
     ).scalar()
+
 
     gastos = db.session.query(
 
@@ -77,9 +85,12 @@ def calcular_totales():
 
     ).filter(
 
+        Movimiento.usuario_id == current_user.id,
+
         Movimiento.tipo == "GASTO"
 
     ).scalar()
+
 
     inversiones = db.session.query(
 
@@ -90,11 +101,15 @@ def calcular_totales():
 
     ).filter(
 
+        Movimiento.usuario_id == current_user.id,
+
         Movimiento.tipo == "INVERSION"
 
     ).scalar()
 
+
     saldo = ingresos - gastos - inversiones
+
 
     return {
 
@@ -120,11 +135,14 @@ def calcular_saldo_cuenta(cuenta):
 
     ).filter(
 
+        Movimiento.usuario_id == current_user.id,
+
         Movimiento.cuenta_id == cuenta.id,
 
         Movimiento.tipo == "INGRESO"
 
     ).scalar()
+
 
     gastos = db.session.query(
 
@@ -135,11 +153,14 @@ def calcular_saldo_cuenta(cuenta):
 
     ).filter(
 
+        Movimiento.usuario_id == current_user.id,
+
         Movimiento.cuenta_id == cuenta.id,
 
         Movimiento.tipo == "GASTO"
 
     ).scalar()
+
 
     inversiones = db.session.query(
 
@@ -150,20 +171,27 @@ def calcular_saldo_cuenta(cuenta):
 
     ).filter(
 
+        Movimiento.usuario_id == current_user.id,
+
         Movimiento.cuenta_id == cuenta.id,
 
         Movimiento.tipo == "INVERSION"
 
     ).scalar()
 
+
     return (
 
-        cuenta.saldo_inicial +
-        ingresos -
-        gastos -
-        inversiones
+        cuenta.saldo_inicial
+
+        + ingresos
+
+        - gastos
+
+        - inversiones
 
     )
+
 
 
 # ============================================================
@@ -171,6 +199,7 @@ def calcular_saldo_cuenta(cuenta):
 # ============================================================
 
 @main.route("/")
+@login_required
 def dashboard():
 
     totales = calcular_totales()
@@ -178,6 +207,12 @@ def dashboard():
     movimientos = (
 
         Movimiento.query
+
+        .filter_by(
+
+            usuario_id=current_user.id
+
+        )
 
         .order_by(
 
@@ -191,11 +226,27 @@ def dashboard():
 
     )
 
-    cuentas = Cuenta.query.order_by(
 
-        Cuenta.nombre
+    cuentas = (
 
-    ).all()
+        Cuenta.query
+
+        .filter_by(
+
+            usuario_id=current_user.id
+
+        )
+
+        .order_by(
+
+            Cuenta.nombre
+
+        )
+
+        .all()
+
+    )
+
 
     saldos_cuentas = []
 
@@ -213,8 +264,10 @@ def dashboard():
 
         )
 
+
     mayor_cuenta = None
     menor_cuenta = None
+
 
     if saldos_cuentas:
 
@@ -233,6 +286,7 @@ def dashboard():
             key=lambda c: c["saldo"]
 
         )
+
 
     if totales["ingresos"] > 0:
 
@@ -255,6 +309,7 @@ def dashboard():
     else:
 
         porcentaje_gastos = 0
+
 
     return render_template(
 
@@ -295,13 +350,17 @@ def dashboard():
 # ============================================================
 
 @main.route("/nuevo", methods=["GET", "POST"])
+@login_required
 def nuevo_movimiento():
 
     form = MovimientoForm()
 
-    cuentas = Cuenta.query.order_by(
-        Cuenta.nombre
-    ).all()
+    cuentas = (
+        Cuenta.query
+        .filter_by(usuario_id=current_user.id)
+        .order_by(Cuenta.nombre)
+        .all()
+    )
 
     form.cuenta.choices = [
         (cuenta.id, cuenta.nombre)
@@ -310,11 +369,15 @@ def nuevo_movimiento():
 
     tipo = form.tipo.data or "INGRESO"
 
-    categorias = Categoria.query.filter_by(
-        tipo=tipo
-    ).order_by(
-        Categoria.nombre
-    ).all()
+    categorias = (
+        Categoria.query
+        .filter_by(
+            usuario_id=current_user.id,
+            tipo=tipo
+        )
+        .order_by(Categoria.nombre)
+        .all()
+    )
 
     form.categoria.choices = [
         (categoria.id, categoria.nombre)
@@ -323,34 +386,49 @@ def nuevo_movimiento():
 
     if form.validate_on_submit():
 
-        movimiento = Movimiento(
+        try:
 
-            tipo=form.tipo.data,
+            cuenta = Cuenta.query.filter_by(
+                id=form.cuenta.data,
+                usuario_id=current_user.id
+            ).first_or_404()
 
-            descripcion=form.descripcion.data,
+            categoria = Categoria.query.filter_by(
+                id=form.categoria.data,
+                usuario_id=current_user.id
+            ).first_or_404()
 
-            valor=form.valor.data,
+            movimiento = Movimiento(
+                tipo=form.tipo.data,
+                descripcion=form.descripcion.data,
+                valor=form.valor.data,
+                observaciones=form.observaciones.data,
+                cuenta_id=cuenta.id,
+                categoria_id=categoria.id,
+                usuario_id=current_user.id
+            )
 
-            observaciones=form.observaciones.data,
+            db.session.add(movimiento)
+            db.session.commit()
 
-            cuenta_id=form.cuenta.data,
+            flash(
+                "Movimiento registrado correctamente.",
+                "success"
+            )
 
-            categoria_id=form.categoria.data
+            return redirect(
+                url_for("main.dashboard")
+            )
 
-        )
+        except Exception as e:
 
-        db.session.add(movimiento)
+            db.session.rollback()
 
-        db.session.commit()
-
-        flash(
-            "Movimiento registrado correctamente.",
-            "success"
-        )
-
-        return redirect(
-            url_for("main.dashboard")
-        )
+            return f"""
+            <h2>Error al guardar el movimiento</h2>
+            <hr>
+            <pre>{e}</pre>
+            """
 
     return render_template(
         "nuevo_movimiento.html",
@@ -363,58 +441,146 @@ def nuevo_movimiento():
 # ============================================================
 
 @main.route("/editar/<int:id>", methods=["GET", "POST"])
+@login_required
 def editar_movimiento(id):
 
-    movimiento = Movimiento.query.get_or_404(id)
+    movimiento = Movimiento.query.filter_by(
+
+        id=id,
+
+        usuario_id=current_user.id
+
+    ).first_or_404()
+
 
     form = MovimientoForm(obj=movimiento)
 
-    cuentas = Cuenta.query.order_by(
-        Cuenta.nombre
-    ).all()
+
+    cuentas = (
+
+        Cuenta.query
+
+        .filter_by(
+
+            usuario_id=current_user.id
+
+        )
+
+        .order_by(
+
+            Cuenta.nombre
+
+        )
+
+        .all()
+
+    )
+
 
     form.cuenta.choices = [
+
         (cuenta.id, cuenta.nombre)
+
         for cuenta in cuentas
+
     ]
 
-    categorias = Categoria.query.filter_by(
-        tipo=movimiento.tipo
-    ).order_by(
-        Categoria.nombre
-    ).all()
+
+    categorias = (
+
+        Categoria.query
+
+        .filter_by(
+
+            usuario_id=current_user.id,
+
+            tipo=movimiento.tipo
+
+        )
+
+        .order_by(
+
+            Categoria.nombre
+
+        )
+
+        .all()
+
+    )
+
 
     form.categoria.choices = [
+
         (categoria.id, categoria.nombre)
+
         for categoria in categorias
+
     ]
+
 
     if form.validate_on_submit():
 
+        cuenta = Cuenta.query.filter_by(
+
+            id=form.cuenta.data,
+
+            usuario_id=current_user.id
+
+        ).first_or_404()
+
+
+        categoria = Categoria.query.filter_by(
+
+            id=form.categoria.data,
+
+            usuario_id=current_user.id
+
+        ).first_or_404()
+
+
         movimiento.tipo = form.tipo.data
+
         movimiento.descripcion = form.descripcion.data
+
         movimiento.valor = form.valor.data
+
         movimiento.observaciones = form.observaciones.data
-        movimiento.cuenta_id = form.cuenta.data
-        movimiento.categoria_id = form.categoria.data
+
+        movimiento.cuenta_id = cuenta.id
+
+        movimiento.categoria_id = categoria.id
+
 
         db.session.commit()
 
+
         flash(
+
             "Movimiento actualizado correctamente.",
+
             "success"
+
         )
+
 
         return redirect(
+
             url_for("main.dashboard")
+
         )
 
+
     form.cuenta.data = movimiento.cuenta_id
+
     form.categoria.data = movimiento.categoria_id
 
+
     return render_template(
+
         "nuevo_movimiento.html",
+
         form=form
+
     )
 
 
@@ -423,21 +589,37 @@ def editar_movimiento(id):
 # ============================================================
 
 @main.route("/eliminar/<int:id>")
+@login_required
 def eliminar_movimiento(id):
 
-    movimiento = Movimiento.query.get_or_404(id)
+    movimiento = Movimiento.query.filter_by(
 
-    db.session.delete(movimiento)
+        id=id,
+
+        usuario_id=current_user.id
+
+    ).first_or_404()
+
+    db.session.delete(
+
+        movimiento
+
+    )
 
     db.session.commit()
 
     flash(
+
         "Movimiento eliminado correctamente.",
+
         "success"
+
     )
 
     return redirect(
+
         url_for("main.dashboard")
+
     )
 
 
@@ -446,14 +628,23 @@ def eliminar_movimiento(id):
 # ============================================================
 
 @main.route("/historial")
+@login_required
 def historial():
 
     movimientos = (
 
         Movimiento.query
 
+        .filter_by(
+
+            usuario_id=current_user.id
+
+        )
+
         .order_by(
+
             Movimiento.fecha.desc()
+
         )
 
         .all()
@@ -474,17 +665,30 @@ def historial():
 # ============================================================
 
 @main.route("/categorias/<tipo>")
+@login_required
 def obtener_categorias(tipo):
 
-    categorias = Categoria.query.filter_by(
+    categorias = (
 
-        tipo=tipo
+        Categoria.query
 
-    ).order_by(
+        .filter_by(
 
-        Categoria.nombre
+            usuario_id=current_user.id,
 
-    ).all()
+            tipo=tipo
+
+        )
+
+        .order_by(
+
+            Categoria.nombre
+
+        )
+
+        .all()
+
+    )
 
     return jsonify(
 
@@ -504,11 +708,14 @@ def obtener_categorias(tipo):
 
     )
 
+
+
 # ============================================================
 # ESTADÍSTICAS
 # ============================================================
 
 @main.route("/estadisticas")
+@login_required
 def estadisticas():
 
     totales = calcular_totales()
@@ -533,6 +740,7 @@ def estadisticas():
 # ============================================================
 
 @main.route("/reportes")
+@login_required
 def reportes():
 
     totales = calcular_totales()
@@ -540,6 +748,12 @@ def reportes():
     movimientos = (
 
         Movimiento.query
+
+        .filter_by(
+
+            usuario_id=current_user.id
+
+        )
 
         .order_by(
 
@@ -573,6 +787,7 @@ def reportes():
 # ============================================================
 
 @main.route("/exportar_excel")
+@login_required
 def exportar_excel():
 
     libro = Workbook()
@@ -584,10 +799,15 @@ def exportar_excel():
     encabezados = [
 
         "Fecha",
+
         "Tipo",
+
         "Cuenta",
+
         "Categoría",
+
         "Descripción",
+
         "Valor"
 
     ]
@@ -619,6 +839,12 @@ def exportar_excel():
     movimientos = (
 
         Movimiento.query
+
+        .filter_by(
+
+            usuario_id=current_user.id
+
+        )
 
         .order_by(
 
@@ -706,9 +932,12 @@ def exportar_excel():
 
         ruta,
 
-        as_attachment=True
+        as_attachment=True,
+
+        download_name="movimientos.xlsx"
 
     )
+
 
 
 # ============================================================
@@ -716,24 +945,39 @@ def exportar_excel():
 # ============================================================
 
 @main.route("/exportar_pdf")
+@login_required
 def exportar_pdf():
 
-    return generar_pdf()
+    return generar_pdf(current_user.id)
+
 
 # ============================================================
 # CONFIGURACIÓN DEL SISTEMA
 # ============================================================
 
 @main.route("/configuracion", methods=["GET", "POST"])
+@login_required
 def configuracion():
 
-    configuracion = Configuracion.query.first()
+    configuracion = Configuracion.query.filter_by(
+
+        usuario_id=current_user.id
+
+    ).first()
 
     if configuracion is None:
 
-        configuracion = Configuracion()
+        configuracion = Configuracion(
 
-        db.session.add(configuracion)
+            usuario_id=current_user.id
+
+        )
+
+        db.session.add(
+
+            configuracion
+
+        )
 
         db.session.commit()
 
@@ -778,12 +1022,17 @@ def configuracion():
         db.session.commit()
 
         flash(
+
             "Configuración guardada correctamente.",
+
             "success"
+
         )
 
         return redirect(
+
             url_for("main.configuracion")
+
         )
 
     return render_template(
@@ -800,6 +1049,7 @@ def configuracion():
 # ============================================================
 
 @main.route("/acerca")
+@login_required
 def acerca():
 
     return redirect(
@@ -814,9 +1064,14 @@ def acerca():
 # ============================================================
 
 @main.route("/utilidades/reparar-categorias")
+@login_required
 def reparar_categorias():
 
-    categorias = Categoria.query.order_by(
+    categorias = Categoria.query.filter_by(
+
+        usuario_id=current_user.id
+
+    ).order_by(
 
         Categoria.id
 

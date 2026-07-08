@@ -23,6 +23,13 @@
 
 from datetime import datetime
 
+from flask_login import UserMixin
+
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
+
 from app import db
 
 
@@ -60,7 +67,7 @@ class Cuenta(db.Model):
 
     nombre = db.Column(
         db.String(100),
-        nullable=False
+        nullable=True
     )
 
     # --------------------------------------------------------
@@ -88,6 +95,16 @@ class Cuenta(db.Model):
     fecha_creacion = db.Column(
         db.DateTime,
         default=datetime.utcnow
+    )
+
+    # --------------------------------------------------------
+    # USUARIO PROPIETARIO
+    # --------------------------------------------------------
+
+    usuario_id = db.Column(
+       db.Integer,
+       db.ForeignKey("usuarios.id"),
+       nullable=True
     )
 
     # --------------------------------------------------------
@@ -151,7 +168,7 @@ class Categoria(db.Model):
 
     nombre = db.Column(
         db.String(100),
-        nullable=False
+        nullable=True
     )
 
     # --------------------------------------------------------
@@ -165,7 +182,7 @@ class Categoria(db.Model):
 
     tipo = db.Column(
         db.String(20),
-        nullable=False
+        nullable=True
     )
 
     # --------------------------------------------------------
@@ -175,6 +192,16 @@ class Categoria(db.Model):
     activa = db.Column(
         db.Boolean,
         default=True
+    )
+
+    # --------------------------------------------------------
+    # USUARIO PROPIETARIO
+    # --------------------------------------------------------
+
+    usuario_id = db.Column(
+        db.Integer,
+        db.ForeignKey("usuarios.id"),
+        nullable=True
     )
 
     # --------------------------------------------------------
@@ -327,6 +354,16 @@ class Movimiento(db.Model):
     )
 
     # --------------------------------------------------------
+    # USUARIO PROPIETARIO
+    # --------------------------------------------------------
+
+    usuario_id = db.Column(
+        db.Integer,
+        db.ForeignKey("usuarios.id"),
+        nullable=True
+    )
+
+    # --------------------------------------------------------
     # Representación del objeto
     # --------------------------------------------------------
 
@@ -363,7 +400,7 @@ class Presupuesto(db.Model):
 
         ),
 
-        nullable=False
+        nullable=True
 
     )
 
@@ -371,7 +408,7 @@ class Presupuesto(db.Model):
 
         db.Float,
 
-        nullable=False
+        nullable=True
 
     )
 
@@ -379,7 +416,7 @@ class Presupuesto(db.Model):
 
         db.Integer,
 
-        nullable=False
+        nullable=True
 
     )
 
@@ -387,7 +424,7 @@ class Presupuesto(db.Model):
 
         db.Integer,
 
-        nullable=False
+        nullable=True
 
     )
 
@@ -396,6 +433,13 @@ class Presupuesto(db.Model):
         "Categoria"
 
     )
+
+    usuario_id = db.Column(
+        db.Integer,
+        db.ForeignKey("usuarios.id"),
+        nullable=True
+   )
+    
 
 # ============================================================
 # CONFIGURACIÓN DEL SISTEMA
@@ -466,5 +510,153 @@ class Configuracion(db.Model):
         onupdate=datetime.utcnow
     )
 
+    # --------------------------------------------------------
+    # USUARIO PROPIETARIO
+    # --------------------------------------------------------
+
+    usuario_id = db.Column(
+        db.Integer,
+        db.ForeignKey("usuarios.id"),
+        nullable=False,
+        unique=True
+    )
+
+    usuario = db.relationship(
+        "Usuario",
+        backref=db.backref(
+            "configuracion",
+            uselist=False
+        )
+    )
+
     def __repr__(self):
         return "<Configuracion>"
+    
+    # ============================================================
+# TABLA: USUARIOS
+# ============================================================
+
+class Usuario(UserMixin, db.Model):
+
+    __tablename__ = "usuarios"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    nombre = db.Column(
+        db.String(120),
+        nullable=False
+    )
+
+    correo = db.Column(
+        db.String(120),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    telefono = db.Column(
+        db.String(30)
+    )
+
+    foto = db.Column(
+        db.String(250),
+        default="default.png"
+    )
+
+    password_hash = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    rol = db.Column(
+        db.String(20),
+        default="USUARIO"
+    )
+
+    activo = db.Column(
+        db.Boolean,
+        default=True
+    )
+
+    fecha_registro = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    ultimo_acceso = db.Column(
+        db.DateTime
+    )
+
+    # --------------------------------------------------------
+    # MÉTODOS
+    # --------------------------------------------------------
+
+    def set_password(self, password):
+
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+
+        return check_password_hash(
+            self.password_hash,
+            password
+        )
+
+    def __repr__(self):
+
+        return f"<Usuario {self.correo}>"
+    
+    # ============================================================
+    # RELACIONES
+    # ============================================================
+
+    cuentas = db.relationship(
+
+        "Cuenta",
+
+        backref="usuario",
+
+        lazy=True,
+
+        cascade="all, delete-orphan"
+
+    )
+
+    categorias = db.relationship(
+
+        "Categoria",
+
+        backref="usuario",
+
+        lazy=True,
+
+        cascade="all, delete-orphan"
+
+    )
+
+    movimientos = db.relationship(
+
+        "Movimiento",
+
+        backref="usuario",
+
+        lazy=True,
+
+        cascade="all, delete-orphan"
+
+    )
+
+    presupuestos = db.relationship(
+
+        "Presupuesto",
+
+        backref="usuario",
+
+        lazy=True,
+
+        cascade="all, delete-orphan"
+
+    )

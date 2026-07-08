@@ -1,14 +1,47 @@
 # ============================================================
 # PROYECTO : Sistema Financiero PRO
+# VERSIÓN  : 2.0
 # ARCHIVO  : inicializar.py
+# MÓDULO   : Datos Iniciales del Sistema
 # ============================================================
 
 from app import db
-from app.models import Cuenta
-from app.models import Categoria
 
+from app.models import (
+    Usuario,
+    Cuenta,
+    Categoria
+)
+
+
+# ============================================================
+# CREAR DATOS INICIALES
+# ============================================================
 
 def crear_datos_iniciales():
+
+    # ========================================================
+    # USUARIO ADMINISTRADOR
+    # ========================================================
+
+    administrador = Usuario.query.filter_by(
+        correo="admin@sistemafinanciero.com"
+    ).first()
+
+    if administrador is None:
+
+        administrador = Usuario(
+            nombre="Administrador",
+            correo="admin@sistemafinanciero.com",
+            telefono="",
+            rol="ADMIN",
+            activo=True
+        )
+
+        administrador.set_password("Admin123*")
+
+        db.session.add(administrador)
+        db.session.commit()
 
     # ========================================================
     # CUENTAS
@@ -27,9 +60,8 @@ def crear_datos_iniciales():
     for nombre in cuentas:
 
         existe = Cuenta.query.filter_by(
-
-            nombre=nombre
-
+            nombre=nombre,
+            usuario_id=administrador.id
         ).first()
 
         if not existe:
@@ -38,7 +70,9 @@ def crear_datos_iniciales():
 
                 Cuenta(
 
-                    nombre=nombre
+                    nombre=nombre,
+
+                    usuario_id=administrador.id
 
                 )
 
@@ -61,9 +95,8 @@ def crear_datos_iniciales():
     for nombre in ingresos:
 
         existe = Categoria.query.filter_by(
-
-            nombre=nombre
-
+            nombre=nombre,
+            usuario_id=administrador.id
         ).first()
 
         if not existe:
@@ -74,7 +107,9 @@ def crear_datos_iniciales():
 
                     nombre=nombre,
 
-                    tipo="INGRESO"
+                    tipo="INGRESO",
+
+                    usuario_id=administrador.id
 
                 )
 
@@ -104,9 +139,8 @@ def crear_datos_iniciales():
     for nombre in gastos:
 
         existe = Categoria.query.filter_by(
-
-            nombre=nombre
-
+            nombre=nombre,
+            usuario_id=administrador.id
         ).first()
 
         if not existe:
@@ -117,7 +151,9 @@ def crear_datos_iniciales():
 
                     nombre=nombre,
 
-                    tipo="GASTO"
+                    tipo="GASTO",
+
+                    usuario_id=administrador.id
 
                 )
 
@@ -140,9 +176,8 @@ def crear_datos_iniciales():
     for nombre in inversiones:
 
         existe = Categoria.query.filter_by(
-
-            nombre=nombre
-
+            nombre=nombre,
+            usuario_id=administrador.id
         ).first()
 
         if not existe:
@@ -153,7 +188,9 @@ def crear_datos_iniciales():
 
                     nombre=nombre,
 
-                    tipo="INVERSION"
+                    tipo="INVERSION",
+
+                    usuario_id=administrador.id
 
                 )
 

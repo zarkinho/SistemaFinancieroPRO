@@ -1,10 +1,7 @@
 # ============================================================
 # PROYECTO : Sistema Financiero PRO
-# VERSIÓN  : 1.0
+# VERSIÓN  : 2.0
 # ARCHIVO  : __init__.py
-# MÓDULO   : Inicialización de la aplicación
-# AUTOR    : Juan Cordero
-# ASISTENTE: ChatGPT
 # ============================================================
 
 # ============================================================
@@ -14,13 +11,38 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 
 # ============================================================
 # OBJETOS GLOBALES
 # ============================================================
 
 db = SQLAlchemy()
+
 migrate = Migrate()
+
+login_manager = LoginManager()
+
+# ============================================================
+# CONFIGURACIÓN LOGIN
+# ============================================================
+
+login_manager.login_view = "auth.login"
+
+login_manager.login_message = "Debe iniciar sesión para continuar."
+
+login_manager.login_message_category = "warning"
+
+# ============================================================
+# CARGAR USUARIO
+# ============================================================
+
+@login_manager.user_loader
+def cargar_usuario(id_usuario):
+
+    from .models import Usuario
+
+    return Usuario.query.get(int(id_usuario))
 
 # ============================================================
 # CREAR APLICACIÓN
@@ -49,23 +71,33 @@ def create_app():
     migrate.init_app(app, db)
 
     # --------------------------------------------------------
+    # LOGIN
+    # --------------------------------------------------------
+
+    login_manager.init_app(app)
+
+    # --------------------------------------------------------
     # IMPORTAR MODELOS
     # --------------------------------------------------------
 
     from . import models
 
     # --------------------------------------------------------
-    # IMPORTAR BLUEPRINTS
+    # BLUEPRINTS
     # --------------------------------------------------------
 
     from .routes import main
     from .routes_reportes import reportes
+    from .auth import auth
 
     app.register_blueprint(main)
+
     app.register_blueprint(reportes)
 
+    app.register_blueprint(auth)
+
     # --------------------------------------------------------
-    # CREAR TABLAS Y DATOS INICIALES
+    # CREAR TABLAS
     # --------------------------------------------------------
 
     with app.app_context():
